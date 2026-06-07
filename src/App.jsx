@@ -46,8 +46,29 @@ const whyCards = [
   ['출산 후 관리까지', '지속 지원', HandHeart],
 ]
 
+function calculatePregnancyWeek(dueDateValue) {
+  if (!dueDateValue) return ''
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(`${dueDateValue}T00:00:00`)
+  if (Number.isNaN(due.getTime())) return ''
+
+  const msPerDay = 24 * 60 * 60 * 1000
+  const daysUntilDue = Math.ceil((due - today) / msPerDay)
+  const pregnancyDays = 280 - daysUntilDue
+
+  if (pregnancyDays < 0) return '예정일을 다시 확인해 주세요'
+  if (pregnancyDays > 300) return '출산 예정일이 지났거나 다시 확인이 필요해요'
+
+  const weeks = Math.floor(pregnancyDays / 7)
+  const days = pregnancyDays % 7
+  return `현재 약 ${weeks}주 ${days}일차입니다`
+}
+
 function App() {
   const [sent, setSent] = useState(false)
+  const [dueDate, setDueDate] = useState('')
+  const pregnancyWeek = calculatePregnancyWeek(dueDate)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -74,7 +95,7 @@ function App() {
           <a href="#case">실제 사례</a>
           <a href="#self">자가진단</a>
         </nav>
-        <a className="headerBtn" href="#apply">무료 점검 신청</a>
+        <a className="headerBtn" href="#apply" onClick={goApply}>무료 점검 신청</a>
       </header>
 
       <main id="top">
@@ -95,7 +116,7 @@ function App() {
               </div>
 
               <div className="heroActions">
-                <a className="primaryBtn" href="#apply">1분 무료 점검 신청하기 <ChevronRight size={18} /></a>
+                <a className="primaryBtn" href="#apply" onClick={goApply}>1분 무료 점검 신청하기 <ChevronRight size={18} /></a>
                 <a className="secondaryBtn" href="#faq">궁금한 내용 먼저 보기 <ChevronDown size={18} /></a>
               </div>
             </div>
@@ -158,7 +179,7 @@ function App() {
               <div className="selfCta">
                 <img src="/images/clipboard-final.png" alt="자가진단 체크리스트" />
                 <strong>진단 후 전문가의<br />무료 점검을 받아보세요!</strong>
-                <a href="#apply">자세히 점검 신청하기 <ChevronRight size={15} /></a>
+                <a href="#apply" onClick={goApply}>자세히 점검 신청하기 <ChevronRight size={15} /></a>
               </div>
             </article>
 
@@ -168,10 +189,11 @@ function App() {
               <h2>무료 점검 신청하기</h2>
               <form onSubmit={handleSubmit}>
                 <label>이름<input required placeholder="예) 김사랑" /></label>
-                <label>연락처<input required placeholder="예) 010-1234-5678" /></label>
-                <label>임신 주차<input placeholder="예) 12주차" /></label>
-                <label>출산 예정일<input placeholder="예) 2026년 10월 15일" /></label>
-                <label>태아보험 가입 여부<select defaultValue=""><option value="" disabled>선택해 주세요</option><option>가입 전</option><option>가입 완료</option><option>상담 중</option></select></label>
+                <label>연락처<input required type="tel" placeholder="예) 010-1234-5678" /></label>
+                <label>출산 예정일<input required type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></label>
+                <div className="weekResult"><span>자동 계산 주차</span><strong>{pregnancyWeek || '출산 예정일을 입력하면 자동 계산됩니다'}</strong></div>
+                <label>태아보험 가입 여부<select required defaultValue=""><option value="" disabled>선택해 주세요</option><option>가입 전</option><option>가입 완료</option><option>상담 중</option></select></label>
+                <label>희망 점검<select required defaultValue=""><option value="" disabled>선택해 주세요</option><option>대면</option><option>카톡</option><option>전화</option><option>문자</option></select></label>
                 <button type="submit">무료 점검 신청하기 <ChevronRight size={18} /></button>
               </form>
               <small><LockKeyhole size={14} /> 입력하신 정보는 점검 상담 목적으로만 사용되며 안전하게 보관됩니다.</small>
@@ -194,10 +216,10 @@ function App() {
           <div><a href="#top">회사소개</a><a href="#top">개인정보처리방침</a><a href="#top">이용약관</a></div>
           <p>상호 : JN Partners ㅣ 대표 : 최준 ㅣ 사업자등록번호 : 123-45-67890<br />주소 : 서울특별시 강남구 테헤란로 000, 000동 ㅣ 문의 : 010-0000-0000<br />© 2026 JN Partners. All rights reserved.</p>
         </div>
-        <a className="kakaoBox" href="#apply"><MessageCircle /><span>궁금한 점이 있으신가요?<br /><b>카카오톡 채널 상담</b></span></a>
+        <a className="kakaoBox" href="#apply" onClick={goApply}><MessageCircle /><span>궁금한 점이 있으신가요?<br /><b>카카오톡 채널 상담</b></span></a>
       </footer>
 
-      <a className="floating" href="#apply">무료 점검 신청</a>
+      <a className="floating" href="#apply" onClick={goApply}>무료 점검 신청</a>
     </div>
   )
 }
