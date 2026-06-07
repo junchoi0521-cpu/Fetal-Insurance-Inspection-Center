@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="site">
       <header className="header">
-        <a className="brand" href="#top">
+        <a className="brand" href="#top" aria-label="태아보험점검센터 홈">
           <span className="logoMark"><Baby size={25}/></span>
           <span><b>태아보험점검센터</b><em>by JN Partners</em></span>
         </a>
