@@ -177,7 +177,7 @@ function App() {
                 <span><Heart /><b>Q3</b><small>30세 만기인지<br />알고 계신가요?</small></span>
               </div>
               <div className="selfCta">
-                <img src="/images/clipboard-final.png" alt="자가진단 체크리스트" />
+                <img src="/images/self-consultation-ai.png" alt="출산 전 전문가와 태아보험을 점검하는 상담 이미지" className="selfConsultImage" />
                 <strong>출산 전 전문가의<br />무료 점검을 받아보세요!</strong>
                 <a href="#apply" onClick={goApply}>무료 점검 신청하기 <ChevronRight size={15} /></a>
               </div>
