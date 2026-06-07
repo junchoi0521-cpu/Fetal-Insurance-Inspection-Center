@@ -178,7 +178,7 @@ function App() {
               </div>
               <div className="selfCta">
                 <img src="/images/clipboard-final.png" alt="자가진단 체크리스트" />
-                <strong>진단 후 전문가의<br />무료 점검을 받아보세요!</strong>
+                <strong>출산 전 전문가의<br />무료 점검을 받아보세요!</strong>
                 <a href="#apply" onClick={goApply}>자세히 점검 신청하기 <ChevronRight size={15} /></a>
               </div>
             </article>
