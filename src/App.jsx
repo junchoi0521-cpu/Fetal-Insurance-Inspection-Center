@@ -25,10 +25,10 @@ import {
 } from 'lucide-react'
 
 const heroCards = [
-  ['가입 전', '비교견적', CalendarDays],
-  ['가입 후', '보장점검', Search],
-  ['산모별', '맞춤 안내', Heart],
-  ['가입 강요', '절대 없음', ShieldCheck],
+  ['가입 전', '비교견적', '여러 보험사 상품을\n한번에 비교', CalendarDays],
+  ['가입 후', '보장점검', '내 보험 보장이\n충분한지 확인', Search],
+  ['산모별', '맞춤 안내', '산모 연령, 상황에 맞는\n맞춤 보장 추천', Heart],
+  ['가입 강요', '절대 없음', '상담·점검만으로도\n도움받을 수 있어요', ShieldCheck],
 ]
 
 const faqCards = [
@@ -107,10 +107,11 @@ function App() {
               <p className="lead">30세 만기부터 100세 만기, 입원비, 수술비까지<br />산모님의 상황에 맞는 맞춤 점검을 무료로 받아보세요.</p>
 
               <div className="heroCards">
-                {heroCards.map(([top, bottom, Icon]) => (
+                {heroCards.map(([top, bottom, desc, Icon]) => (
                   <a href="#apply" className="heroCard" key={top + bottom} onClick={goApply}>
                     <Icon />
                     <strong>{top}<br />{bottom}</strong>
+                    <small>{desc}</small>
                   </a>
                 ))}
               </div>
