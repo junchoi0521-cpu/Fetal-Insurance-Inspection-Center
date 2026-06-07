@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { CalendarDays, Search, Heart, ShieldCheck, ClipboardCheck, Building2, Star, ChevronRight, ChevronDown, LockKeyhole, Users, FileCheck2, BadgeCheck, HandHeart, MessageCircle, Hospital, Activity, WalletCards, Baby } from 'lucide-react'
 
 const mini = [
-  ['가입 전', '비교견적', CalendarDays],
-  ['가입 후', '보장점검', Search],
-  ['산모별', '맞춤 안내', Heart],
-  ['가입 강요', '절대 없음', ShieldCheck],
+  ['가입 전', '비교견적', CalendarDays, '#point'],
+  ['가입 후', '보장점검', Search, '#point'],
+  ['산모별', '맞춤 안내', Heart, '#apply'],
+  ['가입 강요', '절대 없음', ShieldCheck, '#apply'],
 ]
 
 const faq = [
@@ -17,6 +17,16 @@ const faq = [
 ]
 
 function App() {
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setSubmitted(true)
+    setTimeout(() => {
+      document.querySelector('#apply')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
+  }
+
   return (
     <div className="site">
       <header className="header">
@@ -38,12 +48,23 @@ function App() {
               <h1>우리 아이 태아보험,<br/><span>지금 준비한 내용으로</span><br/>충분할까요?</h1>
               <p className="lead">30세 만기부터 100세 만기, 입원비, 수술비까지<br/>산모님의 상황에 맞는 맞춤 점검을 무료로 받아보세요.</p>
               <div className="miniGrid">
-                {mini.map(([a,b,Icon]) => <div className="miniCard" key={a+b}><Icon/><strong>{a}<br/>{b}</strong></div>)}
+                {mini.map(([a,b,Icon,href]) => <a className="miniCard" href={href} key={a+b}><Icon/><strong>{a}<br/>{b}</strong></a>)}
               </div>
               <div className="heroBtns"><a className="primary" href="#apply">1분 무료 점검 신청하기 <ChevronRight size={18}/></a><a className="secondary" href="#faq">궁금한 내용 먼저 보기 <ChevronDown size={18}/></a></div>
             </div>
-            <div className="heroPhotoWrap">
-              <img className="heroPhoto" src="/images/hero-mom-ai.png" alt="임산부 태아보험 점검 이미지" />
+            <div className="heroPhotoWrap" aria-label="산모 이미지 영역">
+              <div className="heroGlow" />
+              <div className="heroPhotoFrame">
+                <img className="heroPhoto" src="/images/hero-mom-ai.png" alt="임산부 태아보험 점검 이미지" />
+              </div>
+              <div className="reviewFloat" aria-label="고객 리뷰">
+                <Heart size={34}/>
+                <span>지금까지</span>
+                <strong>27,843명의</strong>
+                <p>산모님이 함께했어요!</p>
+                <div className="stars"><Star/><Star/><Star/><Star/><Star/></div>
+                <b>4.9 / 5.0</b>
+              </div>
             </div>
           </div>
         </section>
@@ -51,7 +72,7 @@ function App() {
         <section className="faq" id="faq">
           <h2>엄마들이 가장 많이 궁금해하는 질문</h2>
           <div className="faqGrid">
-            {faq.map(([a,b,c,Icon]) => <article className="faqCard" key={a}><Icon/><h3>{a}<br/>{b}<br/>{c}</h3><button>자세히 보기 <ChevronRight size={14}/></button></article>)}
+            {faq.map(([a,b,c,Icon]) => <article className="faqCard" key={a}><Icon/><h3>{a}<br/>{b}<br/>{c}</h3><a href="#apply">자세히 보기 <ChevronRight size={14}/></a></article>)}
           </div>
         </section>
 
@@ -70,13 +91,13 @@ function App() {
             </article>
           </div>
 
-          <aside className="apply" id="apply"><p>1분이면 충분해요!</p><h2>무료 점검 신청하기</h2><form><label>이름<input placeholder="예) 김사랑"/></label><label>연락처<input placeholder="예) 010-1234-5678"/></label><label>임신 주차<input placeholder="예) 12주차"/></label><label>출산 예정일<input placeholder="예) 2026년 10월 15일"/></label><label>태아보험 가입 여부<select defaultValue=""><option value="" disabled>선택해 주세요</option><option>가입 전</option><option>가입 완료</option><option>상담 중</option></select></label><button type="button">무료 점검 신청하기 <ChevronRight size={18}/></button></form><small><LockKeyhole size={14}/> 입력하신 정보는 점검 상담 목적으로만 사용되며 안전하게 보관됩니다.</small></aside>
+          <aside className="apply" id="apply"><p>1분이면 충분해요!</p><h2>무료 점검 신청하기</h2><form onSubmit={handleSubmit}><label>이름<input required placeholder="예) 김사랑"/></label><label>연락처<input required placeholder="예) 010-1234-5678"/></label><label>임신 주차<input required placeholder="예) 12주차"/></label><label>출산 예정일<input placeholder="예) 2026년 10월 15일"/></label><label>태아보험 가입 여부<select required defaultValue=""><option value="" disabled>선택해 주세요</option><option>가입 전</option><option>가입 완료</option><option>상담 중</option></select></label><button type="submit">무료 점검 신청하기 <ChevronRight size={18}/></button></form>{submitted && <div className="submitMsg">신청 정보가 확인되었습니다. 실제 접수 연동은 카카오톡 채널 또는 폼 서비스 연결 후 활성화됩니다.</div>}<small><LockKeyhole size={14}/> 입력하신 정보는 점검 상담 목적으로만 사용되며 안전하게 보관됩니다.</small></aside>
         </section>
 
-        <section className="why"><h2>왜 태아보험점검센터일까요?</h2><div className="whyBox"><div><Users/>산모 중심<br/>맞춤 상담</div><div><FileCheck2/>가입 전/후<br/>모두 점검 가능</div><div><BadgeCheck/>불필요한 보험<br/>정리까지 안내</div><div><HandHeart/>출산 후 관리까지<br/>지속 지원</div></div><p>보험 상품은 산모님의 건강상태, 임신 주차, 보험사 인수 기준에 따라 가입 가능 여부와 조건이 달라질 수 있습니다.</p></section>
+        <section className="why"><h2>왜 태아보험점검센터일까요?</h2><div className="whyBox"><a href="#apply"><Users/>산모 중심<br/>맞춤 상담</a><a href="#point"><FileCheck2/>가입 전/후<br/>모두 점검 가능</a><a href="#point"><BadgeCheck/>불필요한 보험<br/>정리까지 안내</a><a href="#apply"><HandHeart/>출산 후 관리까지<br/>지속 지원</a></div><p>보험 상품은 산모님의 건강상태, 임신 주차, 보험사 인수 기준에 따라 가입 가능 여부와 조건이 달라질 수 있습니다.</p></section>
       </main>
 
-      <footer className="footer"><a className="brand" href="#top"><span className="logoMark"><Baby size={25}/></span><span><b>태아보험점검센터</b><em>by JN Partners</em></span></a><div className="footerInfo"><div><a>회사소개</a><a>개인정보처리방침</a><a>이용약관</a></div><p>상호 : JN Partners ㅣ 대표 : 최준 ㅣ 사업자등록번호 : 123-45-67890<br/>주소 : 서울특별시 강남구 테헤란로 000, 000동 ㅣ 문의 : 010-0000-0000<br/>© 2026 JN Partners. All rights reserved.</p></div><a className="talk" href="#apply"><MessageCircle/>궁금한 점이 있으신가요?<br/><b>카카오톡 채널 상담</b></a></footer>
+      <footer className="footer"><a className="brand" href="#top"><span className="logoMark"><Baby size={25}/></span><span><b>태아보험점검센터</b><em>by JN Partners</em></span></a><div className="footerInfo"><div><a href="#top">회사소개</a><a href="#apply">개인정보처리방침</a><a href="#apply">이용약관</a></div><p>상호 : JN Partners ㅣ 대표 : 최준 ㅣ 사업자등록번호 : 123-45-67890<br/>주소 : 서울특별시 강남구 테헤란로 000, 000동 ㅣ 문의 : 010-0000-0000<br/>© 2026 JN Partners. All rights reserved.</p></div><a className="talk" href="#apply"><MessageCircle/>궁금한 점이 있으신가요?<br/><b>카카오톡 채널 상담</b></a></footer>
     </div>
   )
 }
