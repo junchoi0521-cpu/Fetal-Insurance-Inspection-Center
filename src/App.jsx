@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import {
+  AlertCircle,
   Baby,
   BadgeCheck,
   CalendarDays,
@@ -13,6 +14,7 @@ import {
   HeartPulse,
   Hospital,
   LockKeyhole,
+  LoaderCircle,
   MessageCircle,
   PhoneCall,
   Search,
@@ -102,8 +104,10 @@ const initialForm = {
   dueDate: '',
   status: '',
   channel: '',
+  contactTime: '',
   concern: '',
   consent: false,
+  website: '',
 }
 
 function calculatePregnancyWeek(dueDateValue) {
@@ -127,21 +131,183 @@ function calculatePregnancyWeek(dueDateValue) {
   return `현재 약 ${weeks}주 ${days}일차입니다`
 }
 
+function createLeadId() {
+  const now = new Date()
+  const date = now.toISOString().slice(2, 10).replaceAll('-', '')
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `FI-${date}-${random}`
+}
+
+function formatPhoneNumber(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+
+  if (digits.length < 4) return digits
+  if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
+function getTrackingParams() {
+  if (typeof window === 'undefined') return {}
+
+  const params = new URLSearchParams(window.location.search)
+  return ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].reduce(
+    (result, key) => {
+      const value = params.get(key)
+      return value ? { ...result, [key]: value } : result
+    },
+    {},
+  )
+}
+
+function validateForm(values) {
+  const nextErrors = {}
+  const phoneDigits = values.phone.replace(/\D/g, '')
+  const dueDate = new Date(`${values.dueDate}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const maxDueDate = new Date(today)
+  maxDueDate.setDate(today.getDate() + 310)
+  const minDueDate = new Date(today)
+  minDueDate.setDate(today.getDate() - 14)
+
+  if (values.name.trim().length < 2) nextErrors.name = '성함을 2글자 이상 입력해 주세요.'
+  if (!/^01\d{8,9}$/.test(phoneDigits)) {
+    nextErrors.phone = '연락 가능한 휴대폰 번호를 입력해 주세요.'
+  }
+  if (!values.dueDate || Number.isNaN(dueDate.getTime())) {
+    nextErrors.dueDate = '출산 예정일을 선택해 주세요.'
+  } else if (dueDate < minDueDate || dueDate > maxDueDate) {
+    nextErrors.dueDate = '출산 예정일 범위를 다시 확인해 주세요.'
+  }
+  if (!values.status) nextErrors.status = '가입 상태를 선택해 주세요.'
+  if (!values.channel) nextErrors.channel = '상담 방식을 선택해 주세요.'
+  if (!values.contactTime) nextErrors.contactTime = '연락 가능 시간을 선택해 주세요.'
+  if (!values.consent) nextErrors.consent = '개인정보 수집 및 이용 동의가 필요합니다.'
+
+  return nextErrors
+}
+
+async function submitConsultation(payload) {
+  const response = await fetch('/api/consultations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const contentType = response.headers.get('content-type') || ''
+
+  if (!contentType.includes('application/json')) {
+    if (import.meta.env.DEV) {
+      return { ok: true, leadId: payload.leadId, preview: true }
+    }
+    throw new Error('상담 접수 API 응답을 확인할 수 없습니다.')
+  }
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    if (response.status === 404 && import.meta.env.DEV) {
+      return { ok: true, leadId: payload.leadId, preview: true }
+    }
+    throw new Error(data.message || '접수 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.')
+  }
+
+  return data
+}
+
 function App() {
   const [form, setForm] = useState(initialForm)
-  const [submitted, setSubmitted] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [submitState, setSubmitState] = useState({
+    status: 'idle',
+    message: '',
+    leadId: '',
+    name: '',
+  })
 
   const pregnancyWeek = useMemo(() => calculatePregnancyWeek(form.dueDate), [form.dueDate])
+  const isSubmitting = submitState.status === 'submitting'
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target
-    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }))
-    if (submitted) setSubmitted(false)
+    const nextValue = name === 'phone' ? formatPhoneNumber(value) : value
+
+    setForm((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : nextValue,
+    }))
+    setErrors((current) => {
+      if (!current[name]) return current
+      const { [name]: _removed, ...rest } = current
+      return rest
+    })
+    if (submitState.status !== 'idle') {
+      setSubmitState({ status: 'idle', message: '', leadId: '', name: '' })
+    }
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setSubmitted(true)
+
+    const nextErrors = validateForm(form)
+    setErrors(nextErrors)
+
+    if (Object.keys(nextErrors).length > 0) {
+      setSubmitState({
+        status: 'error',
+        message: '입력 내용을 한 번 더 확인해 주세요.',
+        leadId: '',
+        name: '',
+      })
+      return
+    }
+
+    const leadId = createLeadId()
+    const payload = {
+      leadId,
+      name: form.name.trim(),
+      phone: form.phone,
+      phoneDigits: form.phone.replace(/\D/g, ''),
+      dueDate: form.dueDate,
+      pregnancyWeek,
+      status: form.status,
+      channel: form.channel,
+      contactTime: form.contactTime,
+      concern: form.concern.trim(),
+      consent: form.consent,
+      website: form.website,
+      submittedAt: new Date().toISOString(),
+      pageUrl: typeof window !== 'undefined' ? window.location.href : '',
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      tracking: getTrackingParams(),
+    }
+
+    setSubmitState({
+      status: 'submitting',
+      message: '상담 신청을 접수하고 있습니다.',
+      leadId: '',
+      name: payload.name,
+    })
+
+    try {
+      const result = await submitConsultation(payload)
+      setForm(initialForm)
+      setErrors({})
+      setSubmitState({
+        status: 'success',
+        message: result.preview
+          ? '미리보기 환경에서 접수 흐름이 확인되었습니다.'
+          : '상담 신청이 접수되었습니다. 담당자가 선택하신 방식으로 순차 안내드립니다.',
+        leadId: result.leadId || leadId,
+        name: payload.name,
+      })
+    } catch (error) {
+      setSubmitState({
+        status: 'error',
+        message: error.message,
+        leadId: '',
+        name: payload.name,
+      })
+    }
   }
 
   const goApply = (event) => {
@@ -318,45 +484,64 @@ function App() {
           <aside className="applyPanel" id="apply" aria-labelledby="apply-title">
             <p className="panelLabel">Free Check</p>
             <h2 id="apply-title">무료 점검 신청</h2>
-            <form onSubmit={handleSubmit}>
-              <label>
-                이름
+            <form onSubmit={handleSubmit} noValidate>
+              <label className={errors.name ? 'hasError' : ''}>
+                <span className="fieldName">이름</span>
                 <input
                   required
+                  id="name"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
                   placeholder="예) 김사랑"
+                  autoComplete="name"
+                  aria-invalid={Boolean(errors.name)}
                 />
+                {errors.name && <em className="fieldError">{errors.name}</em>}
               </label>
-              <label>
-                연락처
+              <label className={errors.phone ? 'hasError' : ''}>
+                <span className="fieldName">연락처</span>
                 <input
                   required
+                  id="phone"
                   name="phone"
                   type="tel"
                   value={form.phone}
                   onChange={handleChange}
                   placeholder="예) 010-1234-5678"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  aria-invalid={Boolean(errors.phone)}
                 />
+                {errors.phone && <em className="fieldError">{errors.phone}</em>}
               </label>
-              <label>
-                출산 예정일
+              <label className={errors.dueDate ? 'hasError' : ''}>
+                <span className="fieldName">출산 예정일</span>
                 <input
                   required
+                  id="dueDate"
                   name="dueDate"
                   type="date"
                   value={form.dueDate}
                   onChange={handleChange}
+                  aria-invalid={Boolean(errors.dueDate)}
                 />
+                {errors.dueDate && <em className="fieldError">{errors.dueDate}</em>}
               </label>
               <div className="weekResult">
                 <span>자동 계산 주차</span>
                 <strong>{pregnancyWeek || '출산 예정일을 입력해 주세요'}</strong>
               </div>
-              <label>
-                가입 상태
-                <select required name="status" value={form.status} onChange={handleChange}>
+              <label className={errors.status ? 'hasError' : ''}>
+                <span className="fieldName">가입 상태</span>
+                <select
+                  required
+                  id="status"
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.status)}
+                >
                   <option value="" disabled>
                     선택해 주세요
                   </option>
@@ -365,10 +550,18 @@ function App() {
                   <option>상담 중</option>
                   <option>잘 모르겠음</option>
                 </select>
+                {errors.status && <em className="fieldError">{errors.status}</em>}
               </label>
-              <label>
-                상담 방식
-                <select required name="channel" value={form.channel} onChange={handleChange}>
+              <label className={errors.channel ? 'hasError' : ''}>
+                <span className="fieldName">상담 방식</span>
+                <select
+                  required
+                  id="channel"
+                  name="channel"
+                  value={form.channel}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.channel)}
+                >
                   <option value="" disabled>
                     선택해 주세요
                   </option>
@@ -377,37 +570,93 @@ function App() {
                   <option>문자</option>
                   <option>대면</option>
                 </select>
+                {errors.channel && <em className="fieldError">{errors.channel}</em>}
+              </label>
+              <label className={errors.contactTime ? 'hasError' : ''}>
+                <span className="fieldName">연락 가능 시간</span>
+                <select
+                  required
+                  id="contactTime"
+                  name="contactTime"
+                  value={form.contactTime}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.contactTime)}
+                >
+                  <option value="" disabled>
+                    선택해 주세요
+                  </option>
+                  <option>오전 9시-12시</option>
+                  <option>오후 12시-3시</option>
+                  <option>오후 3시-6시</option>
+                  <option>저녁 6시 이후</option>
+                </select>
+                {errors.contactTime && <em className="fieldError">{errors.contactTime}</em>}
               </label>
               <label className="wideLabel">
-                가장 궁금한 점
+                <span className="fieldName">가장 궁금한 점</span>
                 <textarea
+                  id="concern"
                   name="concern"
                   value={form.concern}
                   onChange={handleChange}
                   placeholder="예) 이미 가입한 보장이 충분한지 알고 싶어요."
                 />
               </label>
-              <label className="consent">
+              <label className="botField" aria-hidden="true">
+                홈페이지
+                <input
+                  name="website"
+                  tabIndex="-1"
+                  value={form.website}
+                  onChange={handleChange}
+                  autoComplete="off"
+                />
+              </label>
+              <label className={`consent ${errors.consent ? 'hasError' : ''}`}>
                 <input
                   required
+                  id="consent"
                   name="consent"
                   type="checkbox"
                   checked={form.consent}
                   onChange={handleChange}
+                  aria-invalid={Boolean(errors.consent)}
                 />
                 <span>개인정보 수집 및 상담 목적 이용에 동의합니다.</span>
+                {errors.consent && <em className="fieldError">{errors.consent}</em>}
               </label>
-              <button type="submit">
-                신청 내용 확인하기
-                <ChevronRight size={18} />
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <LoaderCircle className="spin" size={18} />
+                    접수 중
+                  </>
+                ) : (
+                  <>
+                    상담 신청 접수하기
+                    <ChevronRight size={18} />
+                  </>
+                )}
               </button>
             </form>
-            {submitted && (
-              <div className="submitNotice" role="status">
-                <CheckCircle2 size={20} />
+            {submitState.status !== 'idle' && (
+              <div
+                className={`submitNotice ${submitState.status}`}
+                role={submitState.status === 'error' ? 'alert' : 'status'}
+              >
+                {submitState.status === 'success' && <CheckCircle2 size={20} />}
+                {submitState.status === 'error' && <AlertCircle size={20} />}
+                {submitState.status === 'submitting' && <LoaderCircle className="spin" size={20} />}
                 <span>
-                  <strong>{form.name}님, 신청 내용이 확인되었습니다.</strong>
-                  담당자가 선택하신 방식으로 순차 안내드립니다.
+                  <strong>
+                    {submitState.status === 'success'
+                      ? `${submitState.name}님, 접수가 완료되었습니다.`
+                      : submitState.status === 'submitting'
+                        ? '접수 중입니다.'
+                        : '접수 정보를 확인해 주세요.'}
+                  </strong>
+                  {submitState.message}
+                  {submitState.leadId && <em>접수번호 {submitState.leadId}</em>}
                 </span>
               </div>
             )}
