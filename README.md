@@ -1,1 +1,24 @@
-# Fetal-Insurance-Inspection-Center
+# 태아보험점검센터
+
+태아보험 가입 전 비교와 가입 후 보장 점검을 안내하는 React/Vite 랜딩 페이지입니다.
+
+## 구성
+
+- 첫 화면 CTA와 상담 신청 유도
+- 임신 주차 자동 계산 입력 폼
+- 가입 전/후 점검 항목 안내
+- 상담 진행 절차, 보장 점검 포인트, FAQ
+- 모바일 하단 고정 신청 버튼
+
+## 실행
+
+```bash
+npm install
+npm run dev
+```
+
+## 빌드
+
+```bash
+npm run build
+```
