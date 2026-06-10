@@ -606,6 +606,10 @@ button {
   font-weight: 900;
 }
 
+.fieldName {
+  align-self: center;
+}
+
 .applyPanel input,
 .applyPanel select,
 .applyPanel textarea,
@@ -642,6 +646,23 @@ button {
   box-shadow: 0 0 0 4px rgba(15, 139, 122, 0.1);
 }
 
+.applyPanel input[aria-invalid='true'],
+.applyPanel select[aria-invalid='true'],
+.applyPanel textarea[aria-invalid='true'] {
+  border-color: rgba(217, 81, 77, 0.72);
+  box-shadow: 0 0 0 4px rgba(217, 81, 77, 0.1);
+}
+
+.fieldError {
+  grid-column: 2;
+  margin-top: -5px;
+  color: #b44742;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.4;
+  font-weight: 850;
+}
+
 .weekResult strong {
   min-height: 46px;
   display: flex;
@@ -657,6 +678,14 @@ button {
 
 .wideLabel textarea {
   margin-top: 0;
+}
+
+.botField {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .consent {
@@ -677,6 +706,11 @@ button {
   accent-color: var(--mint);
 }
 
+.consent .fieldError {
+  grid-column: 2;
+  margin-top: -4px;
+}
+
 .applyPanel button {
   min-height: 56px;
   border: 0;
@@ -689,6 +723,12 @@ button {
   justify-content: center;
   gap: 8px;
   font-weight: 950;
+}
+
+.applyPanel button:disabled {
+  cursor: wait;
+  background: linear-gradient(135deg, #789993, #456761);
+  box-shadow: none;
 }
 
 .submitNotice {
@@ -706,6 +746,24 @@ button {
   font-weight: 700;
 }
 
+.submitNotice.success {
+  color: var(--mint-dark);
+  border-color: rgba(15, 139, 122, 0.2);
+  background: rgba(241, 251, 247, 0.9);
+}
+
+.submitNotice.error {
+  color: #9e3935;
+  border-color: rgba(217, 81, 77, 0.2);
+  background: rgba(255, 245, 242, 0.92);
+}
+
+.submitNotice.submitting {
+  color: #275b7b;
+  border-color: rgba(55, 133, 186, 0.22);
+  background: rgba(240, 248, 255, 0.92);
+}
+
 .submitNotice svg {
   flex: 0 0 auto;
   margin-top: 2px;
@@ -715,6 +773,24 @@ button {
   display: block;
   margin-bottom: 2px;
   font-size: 14px;
+}
+
+.submitNotice em {
+  display: block;
+  margin-top: 4px;
+  color: inherit;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .applyPanel > small {
@@ -1170,6 +1246,12 @@ button {
   .weekResult {
     grid-template-columns: 1fr;
     gap: 7px;
+  }
+
+  .fieldError,
+  .consent .fieldError {
+    grid-column: 1;
+    margin-top: -2px;
   }
 
   .wideLabel textarea {
