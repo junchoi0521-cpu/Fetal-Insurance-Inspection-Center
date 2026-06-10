@@ -1,83 +1,317 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
+  AlertCircle,
   Baby,
-  CalendarDays,
-  Search,
-  Heart,
-  ShieldCheck,
-  ClipboardCheck,
-  Building2,
-  Star,
-  ChevronRight,
-  ChevronDown,
-  LockKeyhole,
-  Users,
-  FileCheck2,
   BadgeCheck,
-  HandHeart,
-  MessageCircle,
-  Hospital,
-  WalletCards,
-  ChartNoAxesColumnIncreasing,
+  CalendarDays,
   CheckCircle2,
-  Sparkles,
+  ChevronDown,
+  ChevronRight,
+  ClipboardCheck,
   ClipboardList,
+  FileCheck2,
+  HandHeart,
+  HeartPulse,
+  Hospital,
+  LockKeyhole,
+  LoaderCircle,
+  MessageCircle,
+  PhoneCall,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+  Users,
+  WalletCards,
 } from 'lucide-react'
 
-const heroCards = [
-  ['가입 전', '비교견적', '여러 보험사 상품을\n한번에 비교', CalendarDays],
-  ['가입 후', '보장점검', '내 보험 보장이\n충분한지 확인', Search],
-  ['산모별', '맞춤 안내', '산모 연령, 상황에 맞는\n맞춤 보장 추천', Heart],
-  ['가입 강요', '절대 없음', '상담·점검만으로도\n도움받을 수 있어요', ShieldCheck],
+const inspectionCards = [
+  {
+    title: '가입 전 비교',
+    text: '보험사별 인수 기준, 만기, 납입 조건을 한 번에 비교합니다.',
+    icon: Search,
+  },
+  {
+    title: '가입 후 점검',
+    text: '이미 가입한 증권도 누락 보장과 중복 특약을 함께 확인합니다.',
+    icon: ClipboardCheck,
+  },
+  {
+    title: '산모별 맞춤',
+    text: '임신 주차, 산모 나이, 병력 고지 상황에 맞춰 안내합니다.',
+    icon: HeartPulse,
+  },
+  {
+    title: '강요 없는 상담',
+    text: '필요한 보장과 조정 포인트를 먼저 정리해 드립니다.',
+    icon: ShieldCheck,
+  },
 ]
 
-const faqCards = [
-  ['태아보험은', '언제 가입해야', '하나요?', CalendarDays],
-  ['30세 만기와', '100세 만기', '뭐가 좋나요?', ShieldCheck],
-  ['보험료는', '얼마 정도가', '적당한가요?', Heart],
-  ['이미 가입했는데', '점검받아도', '되나요?', ClipboardCheck],
-  ['현대해상 vs 메리츠', 'vs DB', '어디가 좋나요?', Building2],
+const checklist = [
+  ['만기 구조', '30세/100세 만기 조합과 보험료 균형'],
+  ['입원 보장', '신생아 입원, 중환자실, 질병 입원 일당'],
+  ['수술/진단비', '선천성 질환, 저체중아, 주요 질환 특약'],
+  ['산모 특약', '임신·출산 관련 산모 보장과 고지 조건'],
+  ['보험료 점검', '불필요한 중복 특약과 유지 부담'],
+  ['가입 타이밍', '임신 주차별 심사 가능성과 준비 서류'],
 ]
 
-const whyCards = [
-  ['산모 중심', '맞춤 상담', Users],
-  ['가입 전/후', '모두 점검 가능', FileCheck2],
-  ['불필요한 보험', '정리까지 안내', BadgeCheck],
-  ['출산 후 관리까지', '지속 지원', HandHeart],
+const processSteps = [
+  {
+    title: '정보 확인',
+    text: '출산 예정일과 현재 가입 상태를 간단히 확인합니다.',
+    icon: CalendarDays,
+  },
+  {
+    title: '보장 분석',
+    text: '예상 리스크, 보장 범위, 보험료 구조를 점검합니다.',
+    icon: FileCheck2,
+  },
+  {
+    title: '조정 안내',
+    text: '추가, 축소, 유지가 필요한 항목을 정리해 드립니다.',
+    icon: HandHeart,
+  },
 ]
+
+const faqItems = [
+  {
+    question: '태아보험은 언제부터 준비하는 게 좋나요?',
+    answer:
+      '보험사와 산모 상황에 따라 가능 시점이 달라질 수 있어요. 출산 예정일과 임신 주차를 기준으로 현재 가능한 선택지를 먼저 확인하는 것이 좋습니다.',
+  },
+  {
+    question: '이미 가입했는데도 점검을 받을 수 있나요?',
+    answer:
+      '가능합니다. 가입 후에는 보장 누락, 중복 특약, 보험료 부담, 출산 후 유지 계획을 중심으로 확인합니다.',
+  },
+  {
+    question: '30세 만기와 100세 만기 중 무엇이 더 좋은가요?',
+    answer:
+      '정답이 하나로 정해져 있지는 않습니다. 예산, 보장 우선순위, 성인보험 전환 계획을 함께 보고 조합을 결정하는 편이 안전합니다.',
+  },
+  {
+    question: '상담을 받으면 꼭 가입해야 하나요?',
+    answer:
+      '아니요. 점검 결과를 바탕으로 가입, 유지, 보완 여부를 직접 결정하실 수 있도록 안내합니다.',
+  },
+]
+
+const initialForm = {
+  name: '',
+  phone: '',
+  dueDate: '',
+  status: '',
+  channel: '',
+  contactTime: '',
+  concern: '',
+  consent: false,
+  website: '',
+}
 
 function calculatePregnancyWeek(dueDateValue) {
   if (!dueDateValue) return ''
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const due = new Date(`${dueDateValue}T00:00:00`)
-  if (Number.isNaN(due.getTime())) return ''
+
+  const dueDate = new Date(`${dueDateValue}T00:00:00`)
+  if (Number.isNaN(dueDate.getTime())) return ''
 
   const msPerDay = 24 * 60 * 60 * 1000
-  const daysUntilDue = Math.ceil((due - today) / msPerDay)
+  const daysUntilDue = Math.ceil((dueDate - today) / msPerDay)
   const pregnancyDays = 280 - daysUntilDue
 
-  if (pregnancyDays < 0) return '예정일을 다시 확인해 주세요'
-  if (pregnancyDays > 300) return '출산 예정일이 지났거나 다시 확인이 필요해요'
+  if (pregnancyDays < 0) return '출산 예정일을 다시 확인해 주세요'
+  if (pregnancyDays > 300) return '출산 예정일이 지났거나 확인이 필요해요'
 
   const weeks = Math.floor(pregnancyDays / 7)
   const days = pregnancyDays % 7
   return `현재 약 ${weeks}주 ${days}일차입니다`
 }
 
-function App() {
-  const [sent, setSent] = useState(false)
-  const [dueDate, setDueDate] = useState('')
-  const pregnancyWeek = calculatePregnancyWeek(dueDate)
+function createLeadId() {
+  const now = new Date()
+  const date = now.toISOString().slice(2, 10).replaceAll('-', '')
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `FI-${date}-${random}`
+}
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setSent(true)
-    setTimeout(() => setSent(false), 4200)
+function formatPhoneNumber(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+
+  if (digits.length < 4) return digits
+  if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
+function getTrackingParams() {
+  if (typeof window === 'undefined') return {}
+
+  const params = new URLSearchParams(window.location.search)
+  return ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].reduce(
+    (result, key) => {
+      const value = params.get(key)
+      return value ? { ...result, [key]: value } : result
+    },
+    {},
+  )
+}
+
+function validateForm(values) {
+  const nextErrors = {}
+  const phoneDigits = values.phone.replace(/\D/g, '')
+  const dueDate = new Date(`${values.dueDate}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const maxDueDate = new Date(today)
+  maxDueDate.setDate(today.getDate() + 310)
+  const minDueDate = new Date(today)
+  minDueDate.setDate(today.getDate() - 14)
+
+  if (values.name.trim().length < 2) nextErrors.name = '성함을 2글자 이상 입력해 주세요.'
+  if (!/^01\d{8,9}$/.test(phoneDigits)) {
+    nextErrors.phone = '연락 가능한 휴대폰 번호를 입력해 주세요.'
+  }
+  if (!values.dueDate || Number.isNaN(dueDate.getTime())) {
+    nextErrors.dueDate = '출산 예정일을 선택해 주세요.'
+  } else if (dueDate < minDueDate || dueDate > maxDueDate) {
+    nextErrors.dueDate = '출산 예정일 범위를 다시 확인해 주세요.'
+  }
+  if (!values.status) nextErrors.status = '가입 상태를 선택해 주세요.'
+  if (!values.channel) nextErrors.channel = '상담 방식을 선택해 주세요.'
+  if (!values.contactTime) nextErrors.contactTime = '연락 가능 시간을 선택해 주세요.'
+  if (!values.consent) nextErrors.consent = '개인정보 수집 및 이용 동의가 필요합니다.'
+
+  return nextErrors
+}
+
+async function submitConsultation(payload) {
+  const response = await fetch('/api/consultations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  const contentType = response.headers.get('content-type') || ''
+
+  if (!contentType.includes('application/json')) {
+    if (import.meta.env.DEV) {
+      return { ok: true, leadId: payload.leadId, preview: true }
+    }
+    throw new Error('상담 접수 API 응답을 확인할 수 없습니다.')
   }
 
-  const goApply = (e) => {
-    e.preventDefault()
+  const data = await response.json()
+
+  if (!response.ok) {
+    if (response.status === 404 && import.meta.env.DEV) {
+      return { ok: true, leadId: payload.leadId, preview: true }
+    }
+    throw new Error(data.message || '접수 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.')
+  }
+
+  return data
+}
+
+function App() {
+  const [form, setForm] = useState(initialForm)
+  const [errors, setErrors] = useState({})
+  const [submitState, setSubmitState] = useState({
+    status: 'idle',
+    message: '',
+    leadId: '',
+    name: '',
+  })
+
+  const pregnancyWeek = useMemo(() => calculatePregnancyWeek(form.dueDate), [form.dueDate])
+  const isSubmitting = submitState.status === 'submitting'
+
+  const handleChange = (event) => {
+    const { name, value, type, checked } = event.target
+    const nextValue = name === 'phone' ? formatPhoneNumber(value) : value
+
+    setForm((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : nextValue,
+    }))
+    setErrors((current) => {
+      if (!current[name]) return current
+      const { [name]: _removed, ...rest } = current
+      return rest
+    })
+    if (submitState.status !== 'idle') {
+      setSubmitState({ status: 'idle', message: '', leadId: '', name: '' })
+    }
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+
+    const nextErrors = validateForm(form)
+    setErrors(nextErrors)
+
+    if (Object.keys(nextErrors).length > 0) {
+      setSubmitState({
+        status: 'error',
+        message: '입력 내용을 한 번 더 확인해 주세요.',
+        leadId: '',
+        name: '',
+      })
+      return
+    }
+
+    const leadId = createLeadId()
+    const payload = {
+      leadId,
+      name: form.name.trim(),
+      phone: form.phone,
+      phoneDigits: form.phone.replace(/\D/g, ''),
+      dueDate: form.dueDate,
+      pregnancyWeek,
+      status: form.status,
+      channel: form.channel,
+      contactTime: form.contactTime,
+      concern: form.concern.trim(),
+      consent: form.consent,
+      website: form.website,
+      submittedAt: new Date().toISOString(),
+      pageUrl: typeof window !== 'undefined' ? window.location.href : '',
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      tracking: getTrackingParams(),
+    }
+
+    setSubmitState({
+      status: 'submitting',
+      message: '상담 신청을 접수하고 있습니다.',
+      leadId: '',
+      name: payload.name,
+    })
+
+    try {
+      const result = await submitConsultation(payload)
+      setForm(initialForm)
+      setErrors({})
+      setSubmitState({
+        status: 'success',
+        message: result.preview
+          ? '미리보기 환경에서 접수 흐름이 확인되었습니다.'
+          : '상담 신청이 접수되었습니다. 담당자가 선택하신 방식으로 순차 안내드립니다.',
+        leadId: result.leadId || leadId,
+        name: payload.name,
+      })
+    } catch (error) {
+      setSubmitState({
+        status: 'error',
+        message: error.message,
+        leadId: '',
+        name: payload.name,
+      })
+    }
+  }
+
+  const goApply = (event) => {
+    event.preventDefault()
     document.querySelector('#apply')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
@@ -85,142 +319,448 @@ function App() {
     <div className="site">
       <header className="header">
         <a className="brand" href="#top" aria-label="태아보험점검센터 홈">
-          <span className="brandMark"><Baby size={25} /></span>
-          <span><b>태아보험점검센터</b><em>by JN Partners</em></span>
+          <span className="brandMark">
+            <Baby size={25} />
+          </span>
+          <span>
+            <b>태아보험점검센터</b>
+            <em>무료 보장 점검 상담</em>
+          </span>
         </a>
         <nav aria-label="주요 메뉴">
-          <a href="#about">태아보험이란?</a>
-          <a href="#point">점검 포인트</a>
-          <a href="#faq">궁금한 질문</a>
-          <a href="#case">실제 사례</a>
-          <a href="#self">자가진단</a>
+          <a href="#inspection">점검 항목</a>
+          <a href="#process">진행 절차</a>
+          <a href="#case">보장 사례</a>
+          <a href="#faq">FAQ</a>
         </nav>
-        <a className="headerBtn" href="#apply" onClick={goApply}>무료 점검 신청</a>
+        <a className="headerCta" href="#apply" onClick={goApply}>
+          무료 점검 신청
+          <ChevronRight size={17} />
+        </a>
       </header>
 
       <main id="top">
-        <section className="hero" id="about">
+        <section className="hero" aria-labelledby="hero-title">
+          <div className="heroMedia" aria-hidden="true">
+            <img className="heroMom" src="/images/hero-mom-final.png" alt="" />
+          </div>
+
           <div className="heroInner">
             <div className="heroCopy">
-              <p className="eyebrow">가입 전 비교부터 가입 후 점검까지</p>
-              <h1>우리 아이 태아보험,<br /><span>지금 준비한 내용으로</span><br />충분할까요?</h1>
-              <p className="lead">30세 만기부터 100세 만기, 입원비, 수술비까지<br />산모님의 상황에 맞는 맞춤 점검을 무료로 받아보세요.</p>
-
-              <div className="heroCards">
-                {heroCards.map(([top, bottom, desc, Icon]) => (
-                  <a href="#apply" className="heroCard" key={top + bottom} onClick={goApply}>
-                    <Icon />
-                    <strong>{top}<br />{bottom}</strong>
-                    <small>{desc}</small>
-                  </a>
-                ))}
-              </div>
-
+              <p className="eyebrow">
+                <Sparkles size={18} />
+                가입 전 비교부터 가입 후 보장 점검까지
+              </p>
+              <h1 id="hero-title">태아보험점검센터</h1>
+              <p className="heroLead">
+                산모님의 임신 주차와 현재 가입 상태를 기준으로 태아보험의 보장 범위, 보험료,
+                만기 구조를 차분하게 점검합니다.
+              </p>
               <div className="heroActions">
-                <a className="primaryBtn" href="#apply" onClick={goApply}>1분 무료 점검 신청하기 <ChevronRight size={18} /></a>
-                <a className="secondaryBtn" href="#faq">궁금한 내용 먼저 보기 <ChevronDown size={18} /></a>
+                <a className="primaryBtn" href="#apply" onClick={goApply}>
+                  1분 무료 점검 신청
+                  <ChevronRight size={18} />
+                </a>
+                <a className="secondaryBtn" href="#inspection">
+                  점검 항목 보기
+                  <ChevronDown size={18} />
+                </a>
+              </div>
+              <div className="heroProof" aria-label="상담 특징">
+                <span>
+                  <BadgeCheck size={18} />
+                  가입 전·후 모두 가능
+                </span>
+                <span>
+                  <LockKeyhole size={18} />
+                  개인정보 보호 안내
+                </span>
+                <span>
+                  <MessageCircle size={18} />
+                  원하는 방식 상담
+                </span>
               </div>
             </div>
 
-            <div className="heroVisual">
-              <div className="heroAura" />
-              <img className="roomBg" src="/images/hero-room-bg.png" alt="" />
-              <img className="momPng" src="/images/hero-mom-final.png" alt="임산부 이미지" />
-              <div className="reviewCard">
-                <Heart className="reviewIcon" />
-                <span>지금까지</span>
-                <strong>27,843명의</strong>
-                <p>산모님이 함께했어요!</p>
-                <div className="stars"><Star /><Star /><Star /><Star /><Star /></div>
-                <b>4.9 / 5.0</b>
+            <div className="heroPanel" aria-label="점검 요약">
+              <div className="panelHeader">
+                <span>
+                  <ClipboardList size={20} />
+                </span>
+                <p>오늘 확인할 핵심</p>
               </div>
+              <ul>
+                <li>출산 예정일 기준 가입 가능 시점</li>
+                <li>입원·수술·선천성 질환 보장 구성</li>
+                <li>30세/100세 만기와 월 보험료 균형</li>
+              </ul>
             </div>
           </div>
         </section>
 
-        <section className="faq" id="faq">
-          <h2>엄마들이 가장 많이 궁금해하는 질문</h2>
-          <div className="faqGrid">
-            {faqCards.map(([a, b, c, Icon]) => (
-              <article className="faqCard" key={a + b}>
+        <section className="quickCards" id="inspection" aria-labelledby="inspection-title">
+          <div className="sectionHead">
+            <p>Inspection</p>
+            <h2 id="inspection-title">처음 준비해도, 이미 가입했어도 필요한 것만 점검합니다</h2>
+          </div>
+          <div className="cardGrid">
+            {inspectionCards.map(({ title, text, icon: Icon }) => (
+              <article className="infoCard" key={title}>
                 <Icon />
-                <h3>{a}<br />{b}<br />{c}</h3>
-                <a href="#apply" onClick={goApply}>자세히 보기 <ChevronRight size={15} /></a>
+                <h3>{title}</h3>
+                <p>{text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="content" id="point">
-          <div className="contentGrid">
-            <article className="nicuCard" id="case">
-              <img src="/images/nicu-baby-final.png" alt="신생아중환자실 이미지" />
-              <div className="nicuText">
-                <h2>신생아중환자실 입원,<br />생각보다 비용이 큽니다</h2>
-                <p>태아보험은 아이 상황에 맞는 입원비 보장이 충분한지 확인하는 것이 중요합니다.</p>
-                <div className="statGrid">
-                  <div><Hospital /><span>평균 입원 기간</span><b>10.2일</b><small>상황별 차이 발생</small></div>
-                  <div><WalletCards /><span>1일 병원 비용</span><b>120~200만원</b><small>상급병실/검사 기준</small></div>
-                  <div><ChartNoAxesColumnIncreasing /><span>10일 입원 시</span><b>2,000만원</b><small>이상 발생 가능</small></div>
+        <section className="checkBand" aria-labelledby="check-title">
+          <div className="checkVisual">
+            <img src="/images/clipboard-final.png" alt="태아보험 보장 점검표" />
+          </div>
+          <div className="checkCopy">
+            <div className="sectionHead alignLeft">
+              <p>Checklist</p>
+              <h2 id="check-title">상담 전에 이런 부분을 먼저 봅니다</h2>
+            </div>
+            <div className="checkList">
+              {checklist.map(([title, text]) => (
+                <div className="checkItem" key={title}>
+                  <CheckCircle2 size={20} />
+                  <span>
+                    <strong>{title}</strong>
+                    <small>{text}</small>
+                  </span>
                 </div>
-                <em>* 병원 및 아이 상태에 따라 비용과 기간은 달라질 수 있습니다.</em>
-              </div>
-            </article>
-
-            <article className="selfCard" id="self">
-              <div className="selfHeader">
-                <h2>태아보험 자가진단</h2>
-                <p>3가지 질문으로 우리 아이 보험 상태를 간단히 확인해보세요.</p>
-              </div>
-              <div className="selfSteps">
-                <span><CalendarDays /><b>Q1</b><small>현재 임신<br />몇 주차인가요?</small></span><i>›</i>
-                <span><ShieldCheck /><b>Q2</b><small>태아보험<br />가입하셨나요?</small></span><i>›</i>
-                <span><Heart /><b>Q3</b><small>30세 만기인지<br />알고 계신가요?</small></span>
-              </div>
-              <div className="selfCta">
-                <img src="/images/self-consultation-ai.png" alt="출산 전 전문가와 태아보험을 점검하는 상담 이미지" className="selfConsultImage" />
-                <strong>출산 전 전문가의<br />무료 점검을 받아보세요!</strong>
-                <a href="#apply" onClick={goApply}>무료 점검 신청하기 <ChevronRight size={15} /></a>
-              </div>
-            </article>
-
-            <aside className="applyBox" id="apply">
-              {sent && <div className="toast"><CheckCircle2 size={19} /> 신청 내용이 확인되었습니다.</div>}
-              <p>1분이면 충분해요!</p>
-              <h2>무료 점검 신청하기</h2>
-              <form onSubmit={handleSubmit}>
-                <label>이름<input required placeholder="예) 김사랑" /></label>
-                <label>연락처<input required type="tel" placeholder="예) 010-1234-5678" /></label>
-                <label>출산 예정일<input required type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></label>
-                <div className="weekResult"><span>자동 계산 주차</span><strong>{pregnancyWeek || '출산 예정일을 입력하면 자동 계산됩니다'}</strong></div>
-                <label>태아보험 가입 여부<select required defaultValue=""><option value="" disabled>선택해 주세요</option><option>가입 전</option><option>가입 완료</option><option>상담 중</option></select></label>
-                <label>희망 점검<select required defaultValue=""><option value="" disabled>선택해 주세요</option><option>대면</option><option>카톡</option><option>전화</option><option>문자</option></select></label>
-                <button type="submit">무료 점검 신청하기 <ChevronRight size={18} /></button>
-              </form>
-              <small><LockKeyhole size={14} /> 입력하신 정보는 점검 상담 목적으로만 사용되며 안전하게 보관됩니다.</small>
-            </aside>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="why">
-          <h2>왜 태아보험점검센터일까요?</h2>
-          <div className="whyPill">
-            {whyCards.map(([a, b, Icon]) => <div key={a + b}><Icon /><strong>{a}<br />{b}</strong></div>)}
+        <section className="process" id="process" aria-labelledby="process-title">
+          <div className="sectionHead">
+            <p>Process</p>
+            <h2 id="process-title">복잡한 보험 용어는 줄이고, 결정에 필요한 내용만 정리합니다</h2>
           </div>
-          <p>보험 상품은 산모님의 건강상태, 임신 주차, 보험사 인수 기준에 따라 가입 가능 여부와 조건이 달라질 수 있습니다.</p>
+          <div className="processGrid">
+            {processSteps.map(({ title, text, icon: Icon }, index) => (
+              <article className="processStep" key={title}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <Icon />
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="contentSplit" id="case">
+          <article className="casePanel">
+            <img src="/images/nicu-baby-final.png" alt="신생아 집중 치료를 떠올리게 하는 의료 이미지" />
+            <div>
+              <p className="panelLabel">Coverage Point</p>
+              <h2>작은 보장 차이가 출산 후 부담 차이로 이어질 수 있어요</h2>
+              <p>
+                태아보험은 단순히 저렴한 보험료만 보는 상품이 아닙니다. 신생아 입원, 수술,
+                선천성 질환, 산모 특약처럼 실제로 확인해야 할 항목이 많습니다.
+              </p>
+              <div className="caseList">
+                <span>
+                  <Hospital size={18} />
+                  병원 이용 상황
+                </span>
+                <span>
+                  <WalletCards size={18} />
+                  월 보험료 부담
+                </span>
+                <span>
+                  <Stethoscope size={18} />
+                  산모 고지 조건
+                </span>
+              </div>
+            </div>
+          </article>
+
+          <aside className="applyPanel" id="apply" aria-labelledby="apply-title">
+            <p className="panelLabel">Free Check</p>
+            <h2 id="apply-title">무료 점검 신청</h2>
+            <form onSubmit={handleSubmit} noValidate>
+              <label className={errors.name ? 'hasError' : ''}>
+                <span className="fieldName">이름</span>
+                <input
+                  required
+                  id="name"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="예) 김사랑"
+                  autoComplete="name"
+                  aria-invalid={Boolean(errors.name)}
+                />
+                {errors.name && <em className="fieldError">{errors.name}</em>}
+              </label>
+              <label className={errors.phone ? 'hasError' : ''}>
+                <span className="fieldName">연락처</span>
+                <input
+                  required
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="예) 010-1234-5678"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  aria-invalid={Boolean(errors.phone)}
+                />
+                {errors.phone && <em className="fieldError">{errors.phone}</em>}
+              </label>
+              <label className={errors.dueDate ? 'hasError' : ''}>
+                <span className="fieldName">출산 예정일</span>
+                <input
+                  required
+                  id="dueDate"
+                  name="dueDate"
+                  type="date"
+                  value={form.dueDate}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.dueDate)}
+                />
+                {errors.dueDate && <em className="fieldError">{errors.dueDate}</em>}
+              </label>
+              <div className="weekResult">
+                <span>자동 계산 주차</span>
+                <strong>{pregnancyWeek || '출산 예정일을 입력해 주세요'}</strong>
+              </div>
+              <label className={errors.status ? 'hasError' : ''}>
+                <span className="fieldName">가입 상태</span>
+                <select
+                  required
+                  id="status"
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.status)}
+                >
+                  <option value="" disabled>
+                    선택해 주세요
+                  </option>
+                  <option>가입 전</option>
+                  <option>가입 완료</option>
+                  <option>상담 중</option>
+                  <option>잘 모르겠음</option>
+                </select>
+                {errors.status && <em className="fieldError">{errors.status}</em>}
+              </label>
+              <label className={errors.channel ? 'hasError' : ''}>
+                <span className="fieldName">상담 방식</span>
+                <select
+                  required
+                  id="channel"
+                  name="channel"
+                  value={form.channel}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.channel)}
+                >
+                  <option value="" disabled>
+                    선택해 주세요
+                  </option>
+                  <option>전화</option>
+                  <option>카카오톡</option>
+                  <option>문자</option>
+                  <option>대면</option>
+                </select>
+                {errors.channel && <em className="fieldError">{errors.channel}</em>}
+              </label>
+              <label className={errors.contactTime ? 'hasError' : ''}>
+                <span className="fieldName">연락 가능 시간</span>
+                <select
+                  required
+                  id="contactTime"
+                  name="contactTime"
+                  value={form.contactTime}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.contactTime)}
+                >
+                  <option value="" disabled>
+                    선택해 주세요
+                  </option>
+                  <option>오전 9시-12시</option>
+                  <option>오후 12시-3시</option>
+                  <option>오후 3시-6시</option>
+                  <option>저녁 6시 이후</option>
+                </select>
+                {errors.contactTime && <em className="fieldError">{errors.contactTime}</em>}
+              </label>
+              <label className="wideLabel">
+                <span className="fieldName">가장 궁금한 점</span>
+                <textarea
+                  id="concern"
+                  name="concern"
+                  value={form.concern}
+                  onChange={handleChange}
+                  placeholder="예) 이미 가입한 보장이 충분한지 알고 싶어요."
+                />
+              </label>
+              <label className="botField" aria-hidden="true">
+                홈페이지
+                <input
+                  name="website"
+                  tabIndex="-1"
+                  value={form.website}
+                  onChange={handleChange}
+                  autoComplete="off"
+                />
+              </label>
+              <label className={`consent ${errors.consent ? 'hasError' : ''}`}>
+                <input
+                  required
+                  id="consent"
+                  name="consent"
+                  type="checkbox"
+                  checked={form.consent}
+                  onChange={handleChange}
+                  aria-invalid={Boolean(errors.consent)}
+                />
+                <span>개인정보 수집 및 상담 목적 이용에 동의합니다.</span>
+                {errors.consent && <em className="fieldError">{errors.consent}</em>}
+              </label>
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <LoaderCircle className="spin" size={18} />
+                    접수 중
+                  </>
+                ) : (
+                  <>
+                    상담 신청 접수하기
+                    <ChevronRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+            {submitState.status !== 'idle' && (
+              <div
+                className={`submitNotice ${submitState.status}`}
+                role={submitState.status === 'error' ? 'alert' : 'status'}
+              >
+                {submitState.status === 'success' && <CheckCircle2 size={20} />}
+                {submitState.status === 'error' && <AlertCircle size={20} />}
+                {submitState.status === 'submitting' && <LoaderCircle className="spin" size={20} />}
+                <span>
+                  <strong>
+                    {submitState.status === 'success'
+                      ? `${submitState.name}님, 접수가 완료되었습니다.`
+                      : submitState.status === 'submitting'
+                        ? '접수 중입니다.'
+                        : '접수 정보를 확인해 주세요.'}
+                  </strong>
+                  {submitState.message}
+                  {submitState.leadId && <em>접수번호 {submitState.leadId}</em>}
+                </span>
+              </div>
+            )}
+            <small>
+              <LockKeyhole size={14} />
+              입력 정보는 상담 안내 목적에 맞춰 관리됩니다.
+            </small>
+          </aside>
+        </section>
+
+        <section className="selfCheck" aria-labelledby="self-title">
+          <div>
+            <p className="panelLabel">Self Check</p>
+            <h2 id="self-title">상담 전, 지금 상태를 빠르게 가늠해 보세요</h2>
+            <p>
+              임신 주차, 가입 여부, 만기 구조를 알고 있으면 상담 시간이 훨씬 짧아집니다. 아직
+              모르는 항목은 상담에서 함께 확인하면 됩니다.
+            </p>
+            <a href="#apply" onClick={goApply}>
+              내 상황으로 점검 신청
+              <ChevronRight size={16} />
+            </a>
+          </div>
+          <img src="/images/self-consultation-ai.png" alt="출산 전 보험 점검 상담 장면" />
+        </section>
+
+        <section className="why" aria-labelledby="why-title">
+          <div className="sectionHead">
+            <p>Why Center</p>
+            <h2 id="why-title">보험을 더 많이 넣는 것보다, 맞는 구조인지 보는 일이 먼저입니다</h2>
+          </div>
+          <div className="whyGrid">
+            <div>
+              <Users />
+              <strong>산모 상황 중심</strong>
+              <p>나이, 주차, 병력 고지, 예산을 함께 봅니다.</p>
+            </div>
+            <div>
+              <FileCheck2 />
+              <strong>가입 전·후 점검</strong>
+              <p>새 설계와 기존 증권 모두 확인합니다.</p>
+            </div>
+            <div>
+              <BadgeCheck />
+              <strong>유지 부담 확인</strong>
+              <p>출산 후에도 유지 가능한 보험료인지 점검합니다.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="faq" id="faq" aria-labelledby="faq-title">
+          <div className="sectionHead alignLeft">
+            <p>FAQ</p>
+            <h2 id="faq-title">자주 묻는 질문</h2>
+          </div>
+          <div className="faqList">
+            {faqItems.map(({ question, answer }) => (
+              <details key={question}>
+                <summary>
+                  {question}
+                  <ChevronDown size={18} />
+                </summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
         </section>
       </main>
 
       <footer className="footer">
-        <a className="brand footerBrand" href="#top"><span className="brandMark"><Baby size={25} /></span><span><b>태아보험점검센터</b><em>by JN Partners</em></span></a>
+        <a className="brand footerBrand" href="#top" aria-label="태아보험점검센터 홈">
+          <span className="brandMark">
+            <Baby size={25} />
+          </span>
+          <span>
+            <b>태아보험점검센터</b>
+            <em>무료 보장 점검 상담</em>
+          </span>
+        </a>
         <div className="footerInfo">
-          <div><a href="#top">회사소개</a><a href="#top">개인정보처리방침</a><a href="#top">이용약관</a></div>
-          <p>상호 : JN Partners ㅣ 대표 : 최준 ㅣ 사업자등록번호 : 123-45-67890<br />주소 : 서울특별시 강남구 테헤란로 000, 000동 ㅣ 문의 : 010-0000-0000<br />© 2026 JN Partners. All rights reserved.</p>
+          <div>
+            <a href="#inspection">점검 항목</a>
+            <a href="#faq">자주 묻는 질문</a>
+            <a href="#apply">상담 신청</a>
+          </div>
+          <p>
+            상호 : JN Partners ㅣ 대표 : 최준 ㅣ 사업자 정보 입력 예정
+            <br />
+            본 사이트의 상담 내용은 개인별 상황과 보험사 심사 기준에 따라 달라질 수 있습니다.
+          </p>
         </div>
-        <a className="kakaoBox" href="#apply" onClick={goApply}><MessageCircle /><span>궁금한 점이 있으신가요?<br /><b>카카오톡 채널 상담</b></span></a>
+        <a className="kakaoBox" href="#apply" onClick={goApply}>
+          <MessageCircle />
+          <span>
+            궁금한 점이 있으신가요?
+            <b>상담 신청하기</b>
+          </span>
+        </a>
       </footer>
 
-      <a className="floating" href="#apply" onClick={goApply}>무료 점검 신청</a>
+      <a className="floatingCta" href="#apply" onClick={goApply}>
+        <PhoneCall size={18} />
+        무료 점검 신청
+      </a>
     </div>
   )
 }
